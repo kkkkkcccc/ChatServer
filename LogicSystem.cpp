@@ -161,5 +161,5 @@ void LogicSystem::LoginHandler(shared_ptr<CSession> session, const short& msg_id
 	rtvalue["uid"] = uid;
 	rtvalue["token"] = rsp.token();
 	rtvalue["name"] = user_info->name;
-
+	 
 }
