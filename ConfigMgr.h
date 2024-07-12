@@ -1,27 +1,40 @@
 #pragma once
-#include"const.h"
+#include <fstream>  //文件读写
+#include <boost/property_tree/ptree.hpp>  //文件解析
+#include <boost/property_tree/ini_parser.hpp>  
+#include <boost/filesystem.hpp>    //系统文件操作
+#include <map>
+#include <iostream>
+
 struct SectionInfo {
-	SectionInfo() {}
-	~SectionInfo() {
+	SectionInfo(){}
+	~SectionInfo(){
 		_section_datas.clear();
 	}
-
+	
 	SectionInfo(const SectionInfo& src) {
 		_section_datas = src._section_datas;
 	}
-
+	
 	SectionInfo& operator = (const SectionInfo& src) {
 		if (&src == this) {
-			return *this;
+			return *this;	//使用同一对象
 		}
 
-		this->_section_datas = src._section_datas;
+		this->_section_datas = src._section_datas;	//复制对象参数
 		return *this;
 	}
 
 	std::map<std::string, std::string> _section_datas;
+	std::string  operator[](const std::string  &key) {
+		if (_section_datas.find(key) == _section_datas.end()) {
+			return "";
+		}
+		// 这里可以添加一些边界检查  
+		return _section_datas[key];
+	}
 
-	std::string  operator[](const std::string& key) {
+	std::string GetValue(const std::string & key) {
 		if (_section_datas.find(key) == _section_datas.end()) {
 			return "";
 		}
@@ -30,26 +43,21 @@ struct SectionInfo {
 	}
 };
 
-
 class ConfigMgr
 {
 public:
 	~ConfigMgr() {
 		_config_map.clear();
 	}
-	SectionInfo operator[](const std::string& section) {
+	SectionInfo operator[](const std::string& section) {	//全局重写操作符ConfigMgr[]，并返回section键对
 		if (_config_map.find(section) == _config_map.end()) {
 			return SectionInfo();
 		}
 		return _config_map[section];
 	}
 
-	static ConfigMgr& Inst() {
-		static ConfigMgr cfg_mgr;	//局部静态变量生命周期与进程同步，可见范围只见于局部作用域（C++11以上）
-		return cfg_mgr;		//多线程访问时，只初始化一次，多次访问使用同一变量===单例模式（线程安全）
-	}
 
-	ConfigMgr& operator=(const ConfigMgr& src) {
+	ConfigMgr& operator=(const ConfigMgr& src) {	//重写赋值运算符
 		if (&src == this) {
 			return *this;
 		}
@@ -61,9 +69,15 @@ public:
 		this->_config_map = src._config_map;
 	}
 
-	
+	static ConfigMgr& Inst() {
+		static ConfigMgr cfg_mgr;	//静态声明保证全局单例对象
+		return cfg_mgr;
+	}
+
+	std::string GetValue(const std::string& section, const std::string & key);
 private:
 	ConfigMgr();
 	// 存储section和key-value对的map  
 	std::map<std::string, SectionInfo> _config_map;
 };
+

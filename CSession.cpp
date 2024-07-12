@@ -47,12 +47,12 @@ void CSession::Send(std::string msg, short msgid) {
 		return;
 	}
 
-	_send_que.push(make_shared<SendNode>(msg.c_str(), msg.length(), msgid));
+	_send_que.push(make_shared<SendNode>(msg.c_str(), msg.length(), msgid));	//消息体，消息长，消息头
 	if (send_que_size > 0) {
 		return;
 	}
 	auto& msgnode = _send_que.front();
-	boost::asio::async_write(_socket, boost::asio::buffer(msgnode->_data, msgnode->_total_len),
+	boost::asio::async_write(_socket, boost::asio::buffer(msgnode->_data, msgnode->_total_len),	//asio实现tcp长连接异步通信
 		std::bind(&CSession::HandleWrite, this, std::placeholders::_1, SharedSelf()));
 }
 
